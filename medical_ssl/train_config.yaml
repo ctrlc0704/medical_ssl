@@ -1,0 +1,6 @@
+batch_size: 64
+epochs: 50
+learning_rate: 0.00005
+model: vit_base_patch16_224
+image_size: 224
+mask_ratio: 0.75
