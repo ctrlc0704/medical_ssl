@@ -1,34 +1,31 @@
 import torch
 import torch.optim as optim
+import argparse
 from models.vit import get_vit
 from models.mae import MAE
-from dataset import get_dataloader
-import yaml
+from dataset import get_loader
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-data_dir = "./data/unlabeled"
-with open("train_config.yaml", "r") as f:
-    config = yaml.safe_load(f)
+parser = argparse.ArgumentParser()
+parser.add_argument("--csv", type=str, required=True)
+parser.add_argument("--root_dir", type=str, required=True)
+parser.add_argument("--epochs", type=int, default=5)
+args = parser.parse_args()
 
-batch_size = config["batch_size"]
-epochs = config["epochs"]
-lr = config["learning_rate"]
-
-train_loader, _ = get_dataloader(data_dir, batch_size)
+train_loader = get_loader(args.csv, args.root_dir)
 
 encoder = get_vit(pretrained=False)
-model = MAE(encoder).to(device)
+model = MAE(encoder, mask_ratio=0.75).to(device)
 
-optimizer = optim.AdamW(model.parameters(), lr=lr)
+optimizer = optim.AdamW(model.parameters(), lr=1e-4)
 
-for epoch in range(epochs):
+for epoch in range(args.epochs):
     model.train()
     total_loss = 0
 
     for images, _ in train_loader:
         images = images.to(device)
-
         loss = model(images)
 
         optimizer.zero_grad()
